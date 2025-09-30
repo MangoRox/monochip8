@@ -1,0 +1,79 @@
+using System;
+using System.IO;
+
+namespace monochip8
+{
+  public class Chip8
+  {
+    // private font related members
+    const uint START_ADDRESS = 0x200;
+    const uint FONTSET_SIZE = 80;
+    const uint FONTSET_START_ADDRESS = 0x50;
+    readonly ushort[] fontset =
+    [
+      0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
+      0x20, 0x60, 0x20, 0x20, 0x70, // 1
+      0xF0, 0x10, 0xF0, 0x80, 0xF0, // 2
+      0xF0, 0x10, 0xF0, 0x10, 0xF0, // 3
+      0x90, 0x90, 0xF0, 0x10, 0x10, // 4
+      0xF0, 0x80, 0xF0, 0x10, 0xF0, // 5
+      0xF0, 0x80, 0xF0, 0x90, 0xF0, // 6
+      0xF0, 0x10, 0x20, 0x40, 0x40, // 7
+      0xF0, 0x90, 0xF0, 0x90, 0xF0, // 8
+      0xF0, 0x90, 0xF0, 0x10, 0xF0, // 9
+      0xF0, 0x90, 0xF0, 0x90, 0x90, // A
+      0xE0, 0x90, 0xE0, 0x90, 0xE0, // B
+      0xF0, 0x80, 0x80, 0x80, 0xF0, // C
+      0xE0, 0x90, 0x90, 0x90, 0xE0, // D
+      0xF0, 0x80, 0xF0, 0x80, 0xF0, // E
+      0xF0, 0x80, 0xF0, 0x80, 0x80  // F
+    ];
+
+    //  memory related members
+    public byte[] V = new byte[16];               // V registers
+    public byte[] Memory = new byte[4096];        // 4 KiB memory
+    public ushort I;                              // index register
+    public ushort PC;                             // program counter
+    public bool[,] Display = new bool[64, 32];    // display pixel values
+    public ushort[] Stack = new ushort[16];
+    public byte SP;                               // stack pointer
+    public byte DelayTimer;
+    // public byte SoundTimer; // not going to implement sound...
+    public bool[] Keys = new bool[16];            // flags for when keys are pressed
+
+
+
+
+    public Chip8()
+    {
+      PC = (ushort)START_ADDRESS;
+    }
+    public void LoadROM(string filename)
+    {
+      try
+      {
+        byte[] fileBytes = File.ReadAllBytes(filename);
+        for (int i = 0; i < fileBytes.Length; i++)
+        {
+          Memory[START_ADDRESS + i] = fileBytes[i];
+        }
+
+        for (uint i = 0; i < FONTSET_SIZE; i++)
+        {
+          Memory[FONTSET_START_ADDRESS + i] = (byte)fontset[i];
+        }
+      }
+      catch (IOException ex)
+      {
+        Console.WriteLine($"Unable to read file: {ex.Message}");
+      }
+    }
+
+    public ushort rand()
+    {
+
+    }
+  }
+}
+
+
