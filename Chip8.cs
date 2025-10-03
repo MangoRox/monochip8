@@ -28,7 +28,9 @@ namespace monochip8
       0xF0, 0x80, 0xF0, 0x80, 0xF0, // E
       0xF0, 0x80, 0xF0, 0x80, 0x80  // F
     ];
-
+    // display dimension constants
+    const byte SCREEN_WIDTH = 64;
+    const byte SCREEN_HEIGHT = 32;
     //  memory related members
     public byte[] V = new byte[16];               // V registers
     public byte[] Memory = new byte[4096];        // 4 KiB memory
@@ -40,7 +42,7 @@ namespace monochip8
     public byte DelayTimer;
     // public byte SoundTimer; // not going to implement sound...
     public bool[] Keys = new bool[16];            // flags for when keys are pressed
-
+    public ushort opcode;
 
 
 
@@ -68,12 +70,21 @@ namespace monochip8
         Console.WriteLine($"Unable to read file: {ex.Message}");
       }
     }
-
-    public ushort rand()
+    void OP_00E0() // CLS: CLEAR THE DISPLAY
     {
-
+       for (int i = 0; i<SCREEN_WIDTH; i++) {
+         for (int j = 0; j<SCREEN_HEIGHT; j++) {
+           Display[i, j] = false;
+         }
+       }
     }
-  }
+    void OP_00EE() { // RET: RETURN FROM A SUBROUTINE 
+      --SP; 
+      PC = Stack[SP];
+    } 
+    void OP_1NNN() { // JP addr: Jump to location
+      ushort addr = (ushort)(opcode & 0x0FFFu);
+      PC = addr;
+    }
+  } 
 }
-
-
