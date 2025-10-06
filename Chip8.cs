@@ -81,12 +81,12 @@ namespace monochip8
       }
     }
     void OP_00EE() // RET: RETURN FROM A SUBROUTINE 
-    { 
+    {
       --SP;
       PC = Stack[SP];
     }
     void OP_1nnn() // JP addr: Jump to location
-    { 
+    {
       ushort addr = (ushort)(opcode & 0x0FFFu);
       PC = addr;
     }
@@ -138,6 +138,51 @@ namespace monochip8
       byte kk = (byte)(opcode & 0x00FFu);
 
       V[Vx] += kk;
+    }
+    void OP_8xy0() // LD Vx, Vy: set Vx = Vy
+    {
+      byte Vx = (byte)((opcode & 0x0F00u) >> 8);
+      byte Vy = (byte)((opcode & 0x00F0u) >> 4);
+      V[Vx] = V[Vy];
+    }
+    void OP_8xy1() // OR Vx, Vy: Set Vx = Vx OR Vy
+    {
+      byte Vx = (byte)((opcode & 0x0F00u) >> 8);
+      byte Vy = (byte)((opcode & 0x00F0u) >> 4);
+      V[Vx] |= V[Vy];
+    }
+    void OP_8xy2() // AND Vx, Vy: Set Vx = Vx AND Vy
+    {
+      byte Vx = (byte)((opcode & 0x0F00u) >> 8);
+      byte Vy = (byte)((opcode & 0x00F0u) >> 4);
+      V[Vx] &= V[Vy];
+    }
+    void OP_8xy3() // XOR Vx, Vy: Set Vx = Vx XOR Vy
+    {
+      byte Vx = (byte)((opcode & 0x0F00u) >> 8);
+      byte Vy = (byte)((opcode & 0x00F0u) >> 4);
+      V[Vx] ^= V[Vy];
+    }
+    void OP_8xy4() // ADD Vx, Vy: Set Vx = Vx + Vy, set VF = carry
+    {
+      byte Vx = (byte)((opcode & 0x0F00u) >> 8);
+      byte Vy = (byte)((opcode & 0x00F0u) >> 4);
+      ushort sum = (ushort)(V[Vx] + V[Vy]);
+      V[0xF] = (sum > 255u) ? (byte)1u : (byte)0u;
+      V[Vx] = (byte)sum;
+    }
+    void OP_8xy5() // SUB Vx, Vy: Set Vx = Vx - Vy, set VF = !borrow
+    {
+      byte Vx = (byte)((opcode & 0x0F00u) >> 8);
+      byte Vy = (byte)((opcode & 0x00F0u) >> 4);
+      V[0xF] = (V[Vx] > V[Vy]) ? (byte)1u : (byte)0u;
+      V[Vx] -= V[Vy];
+    }
+    void OP_8xy6() { // SHR Vx: Set Vx = SHR 1
+      byte Vx = (byte)((opcode & 0x0F00u) >> 8);
+      // save LSB in VF
+      V[0xF] = (byte)(V[Vx] & 0x1u);
+      V[Vx] >>= 1;
     }
   }
 }
