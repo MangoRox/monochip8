@@ -46,11 +46,11 @@ namespace monochip8
 
 
 
-    public Chip8()
+    public Chip8() // set PC to start address on init
     {
       PC = (ushort)START_ADDRESS;
     }
-    public void LoadROM(string filename)
+    public void LoadROM(string filename) // Load ROM from file
     {
       try
       {
@@ -72,19 +72,72 @@ namespace monochip8
     }
     void OP_00E0() // CLS: CLEAR THE DISPLAY
     {
-       for (int i = 0; i<SCREEN_WIDTH; i++) {
-         for (int j = 0; j<SCREEN_HEIGHT; j++) {
-           Display[i, j] = false;
-         }
-       }
+      for (int i = 0; i < SCREEN_WIDTH; i++)
+      {
+        for (int j = 0; j < SCREEN_HEIGHT; j++)
+        {
+          Display[i, j] = false;
+        }
+      }
     }
-    void OP_00EE() { // RET: RETURN FROM A SUBROUTINE 
-      --SP; 
+    void OP_00EE() // RET: RETURN FROM A SUBROUTINE 
+    { 
+      --SP;
       PC = Stack[SP];
-    } 
-    void OP_1NNN() { // JP addr: Jump to location
+    }
+    void OP_1nnn() // JP addr: Jump to location
+    { 
       ushort addr = (ushort)(opcode & 0x0FFFu);
       PC = addr;
     }
-  } 
+    void OP_2nnn() // CALL addr: Call subroutine at nnn;
+    {
+      ushort addr = (ushort)(opcode & 0x0FFFu);
+      Stack[SP] = PC;
+      ++SP;
+      PC = addr;
+    }
+    void OP_3xkk() // SE Vx, byte(kk): Skip next instr if Vx == kk.
+    {
+      byte Vx = (byte)((opcode & 0x0F00u) >> 8);
+      byte kk = (byte)(opcode & 0x00FFu);
+      if (V[Vx] == kk)
+      {
+        PC += 2;
+      }
+    }
+    void OP_4xkk() // SNE Vx, byte(kk): Skip next instr if Vx != kk 
+    {
+      byte Vx = (byte)((opcode & 0x0F00u) >> 8);
+      byte kk = (byte)(opcode & 0x00FFu);
+      if (V[Vx] != kk)
+      {
+        PC += 2;
+      }
+    }
+    void OP_5xy0() // SE Vx, Vy: Skip next instr if Vx == Vy
+    {
+      byte Vx = (byte)((opcode & 0x0F00u) >> 8);
+      byte Vy = (byte)((opcode & 0x00F0u) >> 4);
+
+      if (V[Vx] == V[Vy])
+      {
+        PC += 2;
+      }
+    }
+    void OP_6xkk() // LD Vx, byte(kk) : Set Vx = kk 
+    {
+      byte Vx = (byte)((opcode & 0x0F00u) >> 8);
+      byte kk = (byte)(opcode & 0x00FFu);
+
+      V[Vx] = kk;
+    }
+    void OP_7xkk() // ADD Vx, byte(kk) : Set Vx = Vx + kk
+    {
+      byte Vx = (byte)((opcode & 0x0F00u) >> 8);
+      byte kk = (byte)(opcode & 0x00FFu);
+
+      V[Vx] += kk;
+    }
+  }
 }
