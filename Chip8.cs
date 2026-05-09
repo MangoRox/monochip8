@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Runtime.CompilerServices;
 
 namespace monochip8
 {
@@ -183,6 +184,86 @@ namespace monochip8
       // save LSB in VF
       V[0xF] = (byte)(V[Vx] & 0x1u);
       V[Vx] >>= 1;
+    }
+    void OP_8xy7() // SUBN Vx, Vy: Set Vx = Vy - Vx, set VF = !borrow
+    {
+      byte Vx = (byte)((opcode & 0x0F00u) >> 8);
+      byte Vy = (byte)((opcode & 0x00F0u) >> 4);
+      V[0xF] = (V[Vy] > V[Vx]) ? (byte)1u : (byte)0u;
+      V[Vx] = (byte)(V[Vy] - V[Vx]);
+    }
+    void OP_8xyE() // SHL Vx: Set Vx = Vx SHL 1
+    {
+      byte Vx = (byte)((opcode & 0x0F00u) >> 8);
+      // save MSB in VF
+      V[0xF] = (byte)((V[Vx] & 0x80u) >> 7);
+      V[Vx] <<= 1;
+    }
+    void OP_9xy0() // SNE Vx, Vy: Skip next instruction if Vx != Vy
+    {
+      byte Vx = (byte)((opcode & 0x0F00u) >> 8);
+      byte Vy = (byte)((opcode & 0x00F0u) >> 4);
+      if (V[Vx] != V[Vy])
+      {
+        PC += 2;
+      }
+    }
+    void OP_Annn() // LD I, addr: Set I = nnn
+    {
+      ushort addr = (ushort)(opcode & 0x0FFFu);
+      I = addr;
+    }
+    void OP_Bnnn() // JP V0, addr: Jump to location nnn + V0
+    {
+      ushort addr = (ushort)(opcode & 0x0FFFu);
+      PC = (ushort)(addr + V[0]);
+    }
+    void OP_Cxkk() // RND Vx, byte(kk): Set Vx = random byte AND kk
+    {
+      byte Vx = (byte)((opcode & 0x0F00u) >> 8);
+      byte kk = (byte)(opcode & 0x00FFu);
+      Random rand = new Random();
+      V[Vx] = (byte)(rand.Next(0, 256) & kk);
+    }
+    void OP_Dxyn() // DRW Vx, Vy, nibble: Display n-byte sprite starting at memory location I at (Vx, Vy), set VF = collision
+    {
+      byte Vx = (byte)((opcode & 0x0F00u) >> 8);
+      byte Vy = (byte)((opcode & 0x00F0u) >> 4);
+      byte height = (byte)(opcode & 0x000Fu);
+      
+      byte xPos = (byte)(V[Vx] % SCREEN_WIDTH);
+      byte yPos = (byte)(V[Vy] % SCREEN_HEIGHT);
+
+      V[0xF] = 0;
+
+      for (uint row = 0; row < height; row++)
+      {
+        
+        byte spriteByte = Memory[I + row];
+        for (int col = 0; col < 8; col++)
+        {
+          byte spritePixel = (byte)(spriteByte & (0x80u >> col));
+          if (spritePixel != 0)
+          {
+            byte x = (byte)((xPos + col) % SCREEN_WIDTH);
+            byte y = (byte)((yPos + row) % SCREEN_HEIGHT);
+            if (Display[x, y])
+            {
+              V[0xF] = 1;
+            }
+            Display[x, y] ^= true;
+          }
+        }
+      }
+    }
+    void OP_Ex9E() // SKP Vx: Skip next instruction if key with the value of Vx is pressed
+    {
+      byte Vx = (byte)((opcode & 0x0F00u) >> 8);
+      byte key = V[Vx];
+      if (Keys[key])
+      {
+        PC += 2;
+      }
     }
   }
 }
