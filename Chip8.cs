@@ -235,10 +235,9 @@ namespace monochip8
       byte yPos = (byte)(V[Vy] % SCREEN_HEIGHT);
 
       V[0xF] = 0;
-
+      
       for (uint row = 0; row < height; row++)
       {
-        
         byte spriteByte = Memory[I + row];
         for (int col = 0; col < 8; col++)
         {
@@ -263,6 +262,89 @@ namespace monochip8
       if (Keys[key])
       {
         PC += 2;
+      }
+    }
+    void OP_ExA1() // SKNP Vx: Skip next instruction if key with the value of Vx is not pressed
+    {
+      byte Vx = (byte)((opcode & 0x0F00u) >> 8);
+      byte key = V[Vx];
+      if (!Keys[key])
+      {
+        PC += 2;
+      }
+    }
+    void OP_Fx07() // LD Vx, DT: Set Vx = delay timer value
+    {
+      byte Vx = (byte)((opcode & 0x0F00u) >> 8);
+      V[Vx] = DelayTimer;
+    }
+    void OP_Fx0A() // LD Vx, K: Wait for a key press, store the value of the key in Vx
+    {
+      byte Vx = (byte)((opcode & 0x0F00u) >> 8);
+      if (Keys[0]) { V[Vx] = 0; }
+      else if (Keys[1]) { V[Vx] = 1; }
+      else if (Keys[2]) { V[Vx] = 2; }
+      else if (Keys[3]) { V[Vx] = 3; }
+      else if (Keys[4]) { V[Vx] = 4; }
+      else if (Keys[5]) { V[Vx] = 5; }
+      else if (Keys[6]) { V[Vx] = 6; }
+      else if (Keys[7]) { V[Vx] = 7; }
+      else if (Keys[8]) { V[Vx] = 8; }
+      else if (Keys[9]) { V[Vx] = 9; }
+      else if (Keys[10]) { V[Vx] = 10; }
+      else if (Keys[11]) { V[Vx] = 11; }
+      else if (Keys[12]) { V[Vx] = 12; }
+      else if (Keys[13]) { V[Vx] = 13; }
+      else if (Keys[14]) { V[Vx] = 14; }
+      else if (Keys[15]) { V[Vx] = 15; }
+      else { PC -= 2; }
+    }
+    void OP_Fx15() // LD DT, Vx: Set delay timer = Vx
+    {
+      byte Vx = (byte)((opcode & 0x0F00u) >> 8);
+      DelayTimer = V[Vx];
+    }
+    void OP_Fx18() // LD ST, Vx: Set sound timer = V
+    {
+      // Uncommented, not implementing sound
+      // byte Vx = (byte)((opcode & 0x0F00u) >> 8);
+      // SoundTimer = V[Vx];
+    }
+    void OP_Fx1E() // ADD I, Vx: Set I = I + Vx
+    {
+      byte Vx = (byte)((opcode & 0x0F00u) >> 8);
+      I += V[Vx];
+    }
+    void OP_Fx29() // LD F, Vx: Set I = location of sprite for digit Vx
+    {
+      byte Vx = (byte)((opcode & 0x0F00u) >> 8);
+      byte digit = V[Vx];
+      I = (ushort)(FONTSET_START_ADDRESS + (digit * 5));
+    }
+    void OP_Fx33() // LD B, Vx: Store BCD representation of Vx in memory locations I, I+1, and I+2
+    {
+      byte Vx = (byte)((opcode & 0x0F00u) >> 8);
+      byte value = V[Vx];
+      Memory[I + 2] = (byte)(value % 10);
+      value /= 10;
+      Memory[I + 1] = (byte)(value % 10);
+      value /= 10;
+      Memory[I] = (byte)(value % 10); 
+    }
+    void OP_Fx55() // LD [I], Vx: Store registers V0 through Vx in memory starting at location I
+    {
+      byte Vx = (byte)((opcode & 0x0F00u) >> 8);
+      for (int i = 0; i <= Vx; i++)
+      {
+        Memory[I + i] = V[i];
+      }
+    }
+    void OP_Fx65() // LD Vx, [I]: Read registers V0 through Vx from memory starting at location I
+    {
+      byte Vx = (byte)((opcode & 0x0F00u) >> 8);
+      for (int i = 0; i <= Vx; i++)
+      {
+        V[i] = Memory[I + i];
       }
     }
   }
