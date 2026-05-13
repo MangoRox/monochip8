@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel;
 using System.IO;
 using System.Runtime.CompilerServices;
 
@@ -235,7 +236,7 @@ namespace monochip8
       byte yPos = (byte)(V[Vy] % SCREEN_HEIGHT);
 
       V[0xF] = 0;
-      
+
       for (uint row = 0; row < height; row++)
       {
         byte spriteByte = Memory[I + row];
@@ -345,6 +346,109 @@ namespace monochip8
       for (int i = 0; i <= Vx; i++)
       {
         V[i] = Memory[I + i];
+      }
+    }
+    void Cycle()
+    {
+      opcode = (ushort)((Memory[PC] << 8) | Memory[PC + 1]);
+      PC += 2;
+      if (opcode == 0x00E0)
+      {
+        OP_00E0();
+      }
+      else if (opcode == 0x00EE)
+      {
+        OP_00EE();
+      }
+      else if ((opcode & 0xF000) == 0x1000)
+      {
+        OP_1nnn();
+      }
+      else if ((opcode & 0xF000) == 0x2000)
+      {
+        OP_2nnn();
+      }
+      else if ((opcode & 0xF000) == 0x3000)
+      {
+        OP_3xkk();
+      }
+      else if ((opcode & 0xF000) == 0x4000)
+      {
+        OP_4xkk();
+      }
+      else if ((opcode & 0xF000) == 0x5000)
+      {
+        OP_5xy0();
+      }
+      else if ((opcode & 0xF000) == 0x6000)
+      {
+        OP_6xkk();
+      }
+      else if ((opcode & 0xF000) == 0x7000)
+      {
+        OP_7xkk();
+      }
+      else if ((opcode & 0xF000) == 0x8000)
+      {
+        switch (opcode & 0x000Fu)
+        {
+          case 0: OP_8xy0(); break;
+          case 1: OP_8xy1(); break;
+          case 2: OP_8xy2(); break;
+          case 3: OP_8xy3(); break;
+          case 4: OP_8xy4(); break;
+          case 5: OP_8xy5(); break;
+          case 6: OP_8xy6(); break;
+          case 7: OP_8xy7(); break;
+          case 0xE: OP_8xyE(); break;
+        }
+      }
+      else if ((opcode & 0xF000) == 0x9000)
+      {
+        OP_9xy0();
+      }
+      else if ((opcode & 0xF000) == 0xA000)
+      {
+        OP_Annn();
+      }
+      else if ((opcode & 0xF000) == 0xB000)
+      {
+        OP_Bnnn();
+      }
+      else if ((opcode & 0xF000) == 0xC000)
+      {
+        OP_Cxkk();
+      }
+      else if ((opcode & 0xF000) == 0xD000)
+      {
+        OP_Dxyn();
+      }
+      else if ((opcode & 0xF000) == 0xE000)
+      {
+        switch (opcode & 0x00FFu)
+        {
+          case 0x9E: OP_Ex9E(); break;
+          case 0xA1: OP_ExA1(); break;
+        }
+      }
+      else if ((opcode & 0xF000) == 0xF000)
+      {
+        switch (opcode & 0x00FFu)
+        {
+          case 0x07: OP_Fx07(); break;
+          case 0x0A: OP_Fx0A(); break;
+          case 0x15: OP_Fx15(); break;
+          case 0x18: OP_Fx18(); break;
+          case 0x1E: OP_Fx1E(); break;
+          case 0x29: OP_Fx29(); break;
+          case 0x33: OP_Fx33(); break;
+          case 0x55: OP_Fx55(); break;
+          case 0x65: OP_Fx65(); break;
+        }
+      }
+      if (DelayTimer > 0)
+      {
+        DelayTimer--;
       }
     }
   }
