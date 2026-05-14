@@ -348,7 +348,7 @@ namespace monochip8
         V[i] = Memory[I + i];
       }
     }
-    void Cycle()
+    public void Cycle()
     {
       opcode = (ushort)((Memory[PC] << 8) | Memory[PC + 1]);
       PC += 2;

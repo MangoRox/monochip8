@@ -3,3 +3,4 @@
 # compilied binaries and related artifacts 
 bin/
 obj/
+*.ch8
